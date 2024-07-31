@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload and Transformation</title>
+    <style>
+        /* Basic reset */
+        body, h1, p, button, input {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Universal font styling */
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Container styling */
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Header styling */
+        header {
+            margin-bottom: 30px;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        h1 {
+            font-size: 30px;
+            color: #333;
+            margin-bottom: 15px;
+            font-style: italic; /* Italicize header text */
+        }
+
+        p {
+            color: #555;
+            font-size: 18px;
+            line-height: 1.5;
+            font-style: italic; /* Italicize paragraph text */
+        }
+
+        /* Form styling */
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Container for file input and file name */
+        .file-input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Space between the button and file name */
+            margin-bottom: 25px;
+        }
+
+        /* Hide default file input */
+        #file-input {
+            display: none;
+        }
+
+        /* Custom file input label */
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: #f9f9f9;
+            color: #333;
+            font-size: 16px;
+            cursor: pointer;
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic; /* Italicize label text */
+        }
+
+        .file-input-label:hover {
+            background-color: #e0e0e0;
+        }
+
+        /* File name display */
+        #file-name {
+            font-size: 16px;
+            color: #555;
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic; /* Italicize file name text */
+        }
+
+        /* File name placeholder styling */
+        .file-input-container .file-placeholder {
+            font-size: 16px;
+            color: #555;
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic; /* Italicize placeholder text */
+        }
+
+        button {
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            padding: 14px 28px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            width: 100%;
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic; /* Italicize button text */
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        /* Status message styling */
+        .status-message {
+            margin-top: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic; /* Italicize status message text */
+        }
+
+        .status-message.success {
+            color: #28a745;
+        }
+
+        .status-message.error {
+            color: #dc3545;
+        }
+
+        .status-message.info {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Upload and Convert Your File</h1>
+            <p>Ensure the file is in the correct format for optimal results.</p>
+        </header>
+        
+        <form id="upload-form">
+            <div class="file-input-container">
+                <input type="file" id="file-input" accept=".pdf">
+                <label for="file-input" class="file-input-label">Choose File</label>
+                <span id="file-name" class="file-placeholder">No file selected</span>
+            </div>
+            <button type="submit" id="upload-button">Submit for Conversion</button>
+        </form>
+        
+        <div id="status-message" class="status-message"></div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const fileNameDisplay = document.getElementById('file-name');
+        const statusMessage = document.getElementById('status-message');
+
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files.length === 0) {
+                fileNameDisplay.textContent = 'No file selected';
+            } else {
+                const file = fileInput.files[0];
+                fileNameDisplay.textContent = file.name;
+            }
+        });
+
+        document.getElementById('upload-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            if (fileInput.files.length === 0) {
+                statusMessage.textContent = 'Please select a PDF file to proceed.';
+                statusMessage.className = 'status-message error';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            // Simulate file upload and conversion
+            statusMessage.textContent = `Processing ${fileInput.files[0].name}...`;
+            statusMessage.className = 'status-message info';
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok.');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'converted_file.mp3';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                statusMessage.textContent = `Your file ${fileInput.files[0].name} has been successfully processed.`;
+                statusMessage.className = 'status-message success';
+            })
+            .catch(error => {
+                statusMessage.textContent = `An error occurred: ${error.message}`;
+                statusMessage.className = 'status-message error';
+            });
+        });
+    </script>
+</body>
+</html>
